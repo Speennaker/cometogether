@@ -1,0 +1,42 @@
+Options +FollowSymLinks
+
+SetEnvIf Origin "^http(s)?://(.+\.)?(editor\.swagger\.io|spa\.ccp\.thecollegetruths\.net)$" origin_is=$0
+Header always set Access-Control-Allow-Origin %{origin_is}e env=origin_is
+Header always set Access-Control-Allow-Methods "POST, GET, OPTIONS, DELETE, PUT"
+Header always set Access-Control-Max-Age "1000"
+Header always set Access-Control-Allow-Headers "x-requested-with, Content-Type, origin, Authorization, accept, client-security-token"
+
+<IfModule mod_rewrite.c>
+        RewriteEngine On
+        RewriteBase /
+		RewriteCond $1 !^(index\.php|assets/uploads/*|assets/images/*|assets/js/*|assets/css/*|vendor/components/*|vendor/twbs/*|robots\.txt)
+		RewriteRule ^(.*)$ /index.php/$1 [L]
+        # Removes index.php from ExpressionEngine URLs
+        RewriteCond %{THE_REQUEST} ^GET.*index\.php [NC]
+        RewriteCond %{REQUEST_URI} !/system/.* [NC]
+        RewriteRule (.*?)index\.php/*(.*) /$1$2 [R=301,NE,L]
+
+        # Directs all EE web requests through the site index file
+        RewriteCond %{REQUEST_FILENAME} !-f
+        RewriteCond %{REQUEST_FILENAME} !-d
+        RewriteRule ^(.*)$ /index.php/$1 [L]
+
+       #  Added a rewrite to respond with a 200 SUCCESS on every OPTIONS request.
+        RewriteCond %{REQUEST_METHOD} OPTIONS
+        RewriteRule ^(.*)$ $1 [R=200,L]
+</IfModule>
+
+<Files .*>
+	Order Deny,Allow
+	Deny From All
+</Files>
+
+<Files composer*>
+	Order Deny,Allow
+	Deny From All
+</Files>
+
+
+# Allow asset folders through
+# Protect application and system files from being viewed
+RewriteRule ^(application/.+|system/.+\.git.+|migrations/.+|migrations.yml) - [F,L]

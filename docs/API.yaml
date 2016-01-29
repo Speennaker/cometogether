@@ -1,0 +1,1381 @@
+swagger: '2.0'
+
+info:
+  version: "1.0"
+  title: ComeTogether
+
+#PRODUCTION
+#host: ComeTogether.com
+#DEVELOPMENT
+host: kassir.loc
+
+schemes:
+  - http
+  - https
+
+# will be prefixed to all querys
+basePath: '/api'
+
+securityDefinitions:
+  ApiKey:
+      type: apiKey
+      name: API_KEY
+      description: API KEY
+      in: header
+
+  Token:
+    type: apiKey
+    name: TOKEN
+    description: User's Token
+    in: header
+
+paths:
+
+  # Users Block
+
+  '/login':
+
+    post:
+        description: User Authorization
+        security:
+          - ApiKey: []
+
+        parameters:
+          - name: login
+            in: formData
+            description: Username (nickname) or email
+            required: true
+            type: string
+
+          - name: password
+            in: formData
+            description: Password
+            required: true
+            type: string
+
+          - name: device_token
+            in: formData
+            description: Device Token
+            required: false
+            type: string
+
+        responses:
+           # Response code
+           200:
+            description: Successful response
+
+            # Use JSON Schema format
+            schema:
+              title: User's Profile
+              type: object
+              properties:
+                id:
+                  type: number
+                username:
+                  type: string
+                email:
+                  type: string
+                birthday:
+                  type: string
+                  description: yyyy-mm-dd
+                created:
+                  type: string
+                  description: yyyy-mm-dd h:i:s
+                gender:
+                  type: string
+                city_id:
+                  type: string
+                avatar:
+                  type: string
+                  description: Full Avatar URL
+                token:
+                  type: string
+                  description: User's authorization token
+           400:
+             description: Error (Response will contain details)
+           403:
+             description: Authorization error (wrong API key)
+           404:
+             description: User was not found (wrong credentials)
+
+  '/profile':
+    post:
+
+       description: Create User's Profile
+
+       security:
+         - ApiKey: []
+
+       parameters:
+
+        - name: email
+          in: formData
+          description: Email
+          required: true
+          type: string
+          minLength: 3
+          maxLength: 255
+        
+        - name: username
+          in: formData
+          description: Nickname
+          required: true
+          type: string
+          minLength: 4
+          maxLength: 20
+        
+        - name: password
+          in: formData
+          description: Password
+          required: true
+          type: string
+          minLength: 4
+          maxLength: 50 
+          
+        - name: pass2
+          in: formData
+          description: Password Confirmation
+          required: true
+          type: string
+          minLength: 4
+          maxLength: 50  
+        
+        - name: birthday
+          in: formData
+          description: Birth Date (yyyy-mm-dd)
+          required: false
+          type: string
+
+        - name: city_id
+          in: formData
+          description: Google place ID
+          required: true
+          type: string
+          
+        - name: gender
+          in: formData
+          description: Gender
+          required: true
+          type: string
+          enum: ['male', 'female']
+
+        - name: device_token
+          in: formData
+          description: Device Token
+          required: false
+          type: string
+       
+
+       # Expected responses for this operation:
+       responses:
+         # Response code
+         200:
+          description: Successful response
+
+          # Use JSON Schema format
+          schema:
+            title: Response
+            type: object
+            properties:
+              profile: 
+                title: User's Profile
+                type: object
+                properties:
+                  id: 
+                    type: number
+                  username: 
+                    type: string
+                  email:  
+                    type: string
+                  birthday:   
+                    type: string
+                    description: yyyy-mm-dd
+                  created:   
+                    type: string
+                    description: yyyy-mm-dd h:i:s
+                  gender:    
+                    type: string
+                  city_id:
+                    type: string
+                  avatar:    
+                    type: string
+                    description: Empty after registration
+                  token:
+                    type: string
+                    description: User's authorization token
+              errors:
+                title: Errors array
+                description: Empty in cause of success
+                type: array
+                items: 
+                  type: string
+                 
+
+         400:
+           description: Error (Errors array will contain details)
+           
+           schema:
+            title: Response
+            type: object
+            properties:
+              profile: 
+                title: Sent fields
+                type: object
+                description: Contains only sent fields
+                properties:
+                  username: 
+                    type: string
+                  email:  
+                    type: string
+                  birthday:
+                    type: string
+                    description: yyyy-mm-dd
+                  created:
+                    type: string
+                    description: yyyy-mm-dd h:i:s
+                  gender:    
+                    type: string
+                  city_id:
+                    type: string
+              errors:
+                title: Errors array
+                type: array
+                items: 
+                  type: string
+         403:
+           description: Authorization error (wrong API key)
+  
+  
+    get:
+
+      description: User's Profile
+  
+      security:
+        - ApiKey: []
+        - Token: []
+  
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+         description: Successful response
+
+         # Use JSON Schema format
+         schema:
+          title: User's Profile
+          type: object
+          properties:
+            id: 
+             type: number
+            username: 
+             type: string
+            email:  
+              type: string
+            birthday:
+              type: string
+              description: yyyy-mm-dd
+            city_id:
+              type: string
+            created:   
+              type: string
+              description: yyyy-mm-dd h:i:s
+            gender:    
+              type: string
+            avatar:    
+              type: string
+              description: Avatar full URL or empty string
+
+        404:
+          description: User was not found
+        401:
+          description: Authorization error (wrong User's Token)
+        403:
+          description: Authorization error (wrong API key)
+  
+  
+    put:
+
+      description: Edit User's Profile
+
+      security:
+        - ApiKey: []
+        - Token: []
+
+      parameters:
+        - name: email
+          in: formData
+          description: Email
+          required: false
+          type: string
+          minLength: 3
+          maxLength: 255
+        
+        - name: username
+          in: formData
+          description: Nickname
+          required: false
+          type: string
+          minLength: 4
+          maxLength: 20
+        
+        - name: password
+          in: formData
+          description: Password
+          required: false
+          type: string
+          minLength: 4
+          maxLength: 50 
+          
+        - name: pass2
+          in: formData
+          description: Password Confirmation
+          required: false
+          type: string
+          minLength: 4
+          maxLength: 50  
+        
+        - name: birthday
+          in: formData
+          description: Birth Date (yyyy-mm-dd)
+          required: false
+          type: string
+          
+        - name: city_id
+          in: formData
+          description: Google place ID
+          required: true
+          type: string
+
+        - name: gender
+          in: formData
+          description: Gender
+          required: true
+          type: string
+          enum: ['male', 'female']
+        
+       
+      # Expected responses for this operation:
+      responses:
+         # Response code
+         200:
+          description: Successful response
+
+          # Use JSON Schema format
+          schema:
+            title: Response
+            type: object
+            properties:
+              profile: 
+                title: User's Profile
+                type: object
+                properties:
+                  id: 
+                    type: number
+                  username: 
+                    type: string
+                  email:  
+                    type: string
+                  city_id:
+                    type: string
+                  birthday:   
+                    type: string
+                    description: yyyy-mm-dd
+                  created:
+                    type: string
+                    description: yyyy-mm-dd h:i:s
+                  gender:    
+                    type: string
+                  avatar:    
+                    type: string
+                    description: Full Avatar URL
+              errors:
+                title: Errors array
+                type: array
+                description: Empty in cause of success
+                items: 
+                  type: string
+                 
+         400:
+           description: Error (Errors array will contain details)
+           
+           schema:
+            title: Response
+            type: object
+            properties:
+              profile: 
+                title: Sent Data
+                type: object
+                properties:
+                  username: 
+                    type: string
+                  email:  
+                    type: string
+                  city_id:
+                    type: string
+                  birthday:   
+                    type: string
+                  gender:
+                    type: string
+              errors:
+                title: Errors array
+                type: array
+                items: 
+                  type: string
+                  
+         404:
+          description: User was not found
+          
+         401:
+           description: Authorization error (wrong User's Token)
+
+         403:
+           description: Authorization error (wrong API key)
+          
+  '/profile/avatar':
+  
+    get:
+  
+      description: Get User's Avatar URL
+  
+      security:
+        - ApiKey: []
+        - Token: []
+  
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+         description: Successful Response
+         schema:
+          type: string
+          description: Full Avatar URL or empty string
+        400:
+           description: Error (Response will contain details)  
+        404:
+          description: User was not found
+        401:
+          description: Authorization error (wrong User's Token)
+        403:
+          description: Authorization error (wrong API key)
+
+          
+    post:
+  
+      description: Set User's Avatar
+  
+      security:
+        - ApiKey: []
+        - Token: []
+  
+      parameters:
+       - name: avatar
+         in: formData
+         description: Avatar Image
+         required: true
+         type: file
+  
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+         description: Successful Response
+         schema:
+          type: string
+          description: Full Avatar URL
+        400:
+           description: Error (Response will contain details)  
+        404:
+          description: User was not found
+        401:
+          description: Authorization error (wrong User's Token)
+        403:
+          description: Authorization error (wrong API key)
+          
+    delete:
+  
+      description: Delete User's Avatar
+  
+      security:
+        - ApiKey: []
+        - Token: []
+  
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+         description: Successful Response
+        
+        400:
+           description: Error (Response will contain details)  
+        404:
+          description: User was not found
+        401:
+          description: Authorization error (wrong User's Token)
+        403:
+          description: Authorization error (wrong API key)
+
+  '/token':
+
+      post:
+          description: Set Device Token
+          security:
+            - ApiKey: []
+            - Token: []
+
+          parameters:
+            - name: device_token
+              in: formData
+              description: Device Token
+              required: true
+              type: string
+
+          responses:
+             # Response code
+             200:
+              description: Successful response
+              schema:
+                type: boolean
+                description: False if token is already saved
+             400:
+               description: Error (Response will contain details)
+             401:
+               description: Authorization error (wrong User's Token)
+             403:
+               description: Authorization error (wrong API key)
+             404:
+               description: User was not found
+
+
+  # Events block
+
+  '/events':
+
+    post:
+
+      description: Add an event
+
+      security:
+        - ApiKey: []
+        - Token: []
+
+
+      parameters:
+        - name: date
+          in: formData
+          description: Event Date (yyyy-mm-dd)
+          required: true
+          type: string
+
+        - name: place_id
+          in: formData
+          description: Google place ID
+          required: true
+          type: string
+
+        - name: place_type
+          in: formData
+          description: Google Place Type
+          required: true
+          type: string
+          enum: ['movie_theater', 'art_gallery', 'museum', 'night_club', 'bar', 'restaurant', 'park', 'amusement_park', 'stadium']
+
+        - name: time
+          in: formData
+          description: Event time
+          required: true
+          type: string
+          enum: ['morning', 'noon', 'evening']
+
+        - name: gender
+          in: formData
+          description: Gender
+          required: false
+          type: string
+          enum: ['male', 'female']
+
+        - name: people
+          in: formData
+          description: People Quantity
+          required: false
+          type: number
+
+        - name: comment
+          in: formData
+          description: Additional Info
+          required: false
+          type: string
+          minLength: 1
+          maxLength: 255
+
+        - name: show_name
+          in: formData
+          description: Name of the show (movie, etc.)
+          required: false
+          type: string
+          minLength: 3
+          maxLength: 255
+
+      # Expected responses for this operation:
+      responses:
+         # Response code
+         200:
+          description: Successful response
+
+          # Use JSON Schema format
+          schema:
+            title: Response
+            type: object
+            properties:
+              data:
+                title: Event Data
+                type: object
+                properties:
+                  id:
+                   type: number
+                  date:
+                    type: string
+                    description: yyyy-mm-dd
+                  created:
+                    type: string
+                    description: yyyy-mm-dd h:i:s
+                  updated:
+                    type: string
+                    description: yyyy-mm-dd h:i:s
+                  place_id:
+                    type: string
+                  place_type:
+                    type: string
+                  show_name:
+                    type: string
+                  comment:
+                    type: string
+                  gender:
+                    type: string
+                  people:
+                    type: number
+                  time:
+                    type: string
+                  users_id:
+                    type: number
+                  lat:
+                    type: number
+                  lng:
+                    type: number
+              errors:
+                title: Errors array
+                type: array
+                description: Empty in cause of success
+                items:
+                  type: string
+
+         400:
+           description: Error (Errors array will contain details)
+
+           schema:
+            title: Response
+            type: object
+            properties:
+              profile:
+                title: Sent Data
+                type: object
+                properties:
+                 date:
+                   type: string
+                   description: yyyy-mm-dd
+                 place_id:
+                   type: string
+                 place_type:
+                   type: string
+                 show_name:
+                   type: string
+                 comment:
+                   type: string
+                 gender:
+                   type: string
+                 people:
+                   type: number
+                 time:
+                   type: string
+              errors:
+                title: Errors array
+                type: array
+                items:
+                  type: string
+
+         401:
+           description: Authorization error (wrong User's Token)
+
+         403:
+           description: Authorization error (wrong API key)
+
+  '/events/city':
+
+    get:
+
+      description: Events list in logged in user city
+
+      security:
+        - ApiKey: []
+        - Token: []
+
+
+      # Expected responses for this operation:
+      responses:
+         # Response code
+         200:
+          description: Successful response
+
+          # Use JSON Schema format
+          schema:
+            title: Events List
+            type: array
+            items:
+             type: object
+             properties:
+              id:
+               type: number
+              date:
+                type: string
+                description: yyyy-mm-dd
+              created:
+                type: string
+                description: yyyy-mm-dd h:i:s
+              updated:
+                type: string
+                description: yyyy-mm-dd h:i:s
+              place_id:
+                type: string
+              place_type:
+                type: string
+              show_name:
+                type: string
+              comment:
+                type: string
+              gender:
+                type: string
+              people:
+                type: number
+              time:
+                type: string
+              users_id:
+                type: number
+              lat:
+                type: number
+              lng:
+                type: number
+              distance:
+                type: number
+                description: Distance from Google coordinates for user's city
+              joined_count:
+                type: number
+                description: Joined Users Count
+              creator_id:
+               type: number
+              creator_username:
+               type: string
+              creator_birthday:
+               type: string
+               description: yyyy-mm-dd
+              creator_gender:
+               type: string
+              creator_avatar:
+               type: string
+               description: Full Avatar URL
+              place_info:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                     type: string
+                    address:
+                     type: string
+                    icon:
+                     type: string
+                     description: Full Icon URL
+                    phone:
+                     type: string
+                    website:
+                     type: string
+                     description: Website URL
+                    rating:
+                     type: string
+
+         400:
+           description: Error (Response will contain details)
+
+         401:
+           description: Authorization error (wrong User's Token)
+
+         403:
+           description: Authorization error (wrong API key)
+
+  '/events/search':
+
+    post:
+
+      description: Events list by given conditions
+      security:
+        - ApiKey: []
+        - Token: []
+
+      parameters:
+
+        - name: per_page
+          in: formData
+          description: Results per page
+          required: true
+          type: number
+
+        - name: page
+          in: formData
+          description: Page number
+          required: true
+          type: number
+
+        - name: lat
+          in: formData
+          description: Latitude
+          required: false
+          type: number
+
+        - name: lng
+          in: formData
+          description: Longitude
+          required: false
+          type: number
+
+        - name: radius
+          in: formData
+          description: Search radius (in meters)
+          required: false
+          type: number
+
+        - name: place_type
+          in: formData
+          description: Google Place Type
+          required: false
+          type: string
+          enum: ['movie_theater', 'art_gallery', 'museum', 'night_club', 'bar', 'restaurant', 'park', 'amusement_park', 'stadium']
+
+        - name: time
+          in: formData
+          description: Event time
+          required: false
+          type: string
+          enum: ['morning', 'noon', 'evening']
+
+        - name: gender
+          in: formData
+          description: Gender
+          required: false
+          type: string
+          enum: ['male', 'female']
+
+        - name: show_name
+          in: formData
+          description: Name of the show (movie, etc.)
+          required: false
+          type: string
+
+        - name: date_from
+          in: formData
+          description: Min date (yyyy-mm-dd)
+          required: false
+          type: string
+
+        - name: date_to
+          in: formData
+          description: Max date (yyyy-mm-dd)
+          required: false
+          type: string
+
+
+      # Expected responses for this operation:
+      responses:
+         # Response code
+         200:
+          description: Successful response
+
+          # Use JSON Schema format
+          schema:
+            type: object
+            properties:
+             total_count:
+              type: number
+             total_pages:
+              type: number
+             current_page:
+              type: number
+
+             result:
+              title: Events List
+              type: array
+              items:
+               type: object
+               properties:
+                id:
+                 type: number
+                date:
+                  type: string
+                  description: yyyy-mm-dd
+                created:
+                  type: string
+                  description: yyyy-mm-dd h:i:s
+                updated:
+                  type: string
+                  description: yyyy-mm-dd h:i:s
+                place_id:
+                  type: string
+                place_type:
+                  type: string
+                show_name:
+                  type: string
+                comment:
+                  type: string
+                gender:
+                  type: string
+                people:
+                  type: number
+                time:
+                  type: string
+                users_id:
+                  type: number
+                lat:
+                  type: number
+                lng:
+                  type: number
+                distance:
+                  type: number
+                  description: Distance from Google coordinates for user's city
+                joined_count:
+                  type: number
+                  description: Joined Users Count
+                creator_id:
+                 type: number
+                creator_username:
+                 type: string
+                creator_birthday:
+                 type: string
+                 description: yyyy-mm-dd
+                creator_gender:
+                 type: string
+                creator_avatar:
+                 type: string
+                 description: Full Avatar URL
+                place_info:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                       type: string
+                      address:
+                       type: string
+                      icon:
+                       type: string
+                       description: Full Icon URL
+                      phone:
+                       type: string
+                      website:
+                       type: string
+                       description: Website URL
+                      rating:
+                       type: string
+
+         400:
+           description: Error (Response will contain details)
+
+         401:
+           description: Authorization error (wrong User's Token)
+
+         403:
+           description: Authorization error (wrong API key)
+
+  '/events/nearest':
+
+   post:
+
+     description: Events list near given coordinates
+     security:
+       - ApiKey: []
+       - Token: []
+
+     parameters:
+
+       - name: lat
+         in: formData
+         description: Latitude
+         required: true
+         type: number
+
+       - name: lng
+         in: formData
+         description: Longitude
+         required: true
+         type: number
+
+       - name: radius
+         in: formData
+         description: Search radius (in meters)
+         required: true
+         type: number
+
+
+     # Expected responses for this operation:
+     responses:
+        # Response code
+        200:
+         description: Successful response
+
+         # Use JSON Schema format
+         schema:
+           title: Events List
+           type: array
+           items:
+            type: object
+            properties:
+             id:
+              type: number
+             date:
+               type: string
+               description: yyyy-mm-dd
+             created:
+               type: string
+               description: yyyy-mm-dd h:i:s
+             updated:
+               type: string
+               description: yyyy-mm-dd h:i:s
+             place_id:
+               type: string
+             place_type:
+               type: string
+             show_name:
+               type: string
+             comment:
+               type: string
+             gender:
+               type: string
+             people:
+               type: number
+             time:
+               type: string
+             users_id:
+               type: number
+             lat:
+               type: number
+             lng:
+               type: number
+             distance:
+               type: number
+               description: Distance from Google coordinates for user's city
+             joined_count:
+               type: number
+               description: Joined Users Count
+             creator_id:
+              type: number
+             creator_username:
+              type: string
+             creator_birthday:
+              type: string
+              description: yyyy-mm-dd
+             creator_gender:
+              type: string
+             creator_avatar:
+              type: string
+              description: Full Avatar URL
+             place_info:
+               type: array
+               items:
+                 type: object
+                 properties:
+                   name:
+                    type: string
+                   address:
+                    type: string
+                   icon:
+                    type: string
+                    description: Full Icon URL
+                   phone:
+                    type: string
+                   website:
+                    type: string
+                    description: Website URL
+                   rating:
+                    type: string
+
+        400:
+          description: Error (Response will contain details)
+
+        401:
+          description: Authorization error (wrong User's Token)
+
+        403:
+          description: Authorization error (wrong API key)
+
+  '/events/{event_id}':
+
+    get:
+
+      description: Event details
+      security:
+        - ApiKey: []
+        - Token: []
+
+      parameters:
+
+        - name: event_id
+          in: path
+          description: Event ID
+          required: true
+          type: number
+
+
+
+      # Expected responses for this operation:
+      responses:
+         # Response code
+         200:
+          description: Successful response
+
+          # Use JSON Schema format
+          schema:
+            title: Event Details
+            type: object
+            properties:
+              id:
+               type: number
+              date:
+                type: string
+                description: yyyy-mm-dd
+              created:
+                type: string
+                description: yyyy-mm-dd h:i:s
+              updated:
+                type: string
+                description: yyyy-mm-dd h:i:s
+              place_id:
+                type: string
+              place_type:
+                type: string
+              show_name:
+                type: string
+              comment:
+                type: string
+              gender:
+                type: string
+              people:
+                type: number
+              time:
+                type: string
+              users_id:
+                type: number
+              lat:
+                type: number
+              lng:
+                type: number
+              joined_count:
+                type: number
+                description: Joined Users Count
+              creator_id:
+               type: number
+              creator_username:
+               type: string
+              creator_birthday:
+               type: string
+               description: yyyy-mm-dd
+              creator_gender:
+               type: string
+              creator_avatar:
+               type: string
+               description: Full Avatar URL
+              place_info:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                     type: string
+                    address:
+                     type: string
+                    icon:
+                     type: string
+                     description: Full Icon URL
+                    phone:
+                     type: string
+                    website:
+                     type: string
+                     description: Website URL
+                    rating:
+                     type: string
+              joined:
+                type: array
+                description: List of Joined Users
+                items:
+                 type: object
+                 properties:
+                  join_date:
+                   type: string
+                   description: yyyy-mm-dd h:i:s
+                  id:
+                   type: number
+                  username:
+                   type: string
+                  birthday:
+                   type: string
+                   description: yyyy-mm-dd
+                  gender:
+                   type: string
+                  avatar:
+                   type: string
+                   description: Full Avatar URL
+              messages:
+                type: array
+                description: Event conversation
+                items:
+                 type: object
+                 properties:
+                  id:
+                   type: number
+                  created:
+                   type: string
+                   description: yyyy-mm-dd h:i:s
+                  message:
+                   type: string
+                  author_id:
+                   type: number
+                  author_username:
+                   type: string
+                  author_birthday:
+                   type: string
+                   description: yyyy-mm-dd
+                  author_gender:
+                   type: string
+                  author_avatar:
+                   type: string
+                   description: Full Avatar URL
+
+         400:
+           description: Error (Response will contain details)
+         401:
+           description: Authorization error (wrong User's Token)
+         404:
+           description: Event Not Found
+         403:
+           description: Authorization error (wrong API key)
+
+  '/events/{event_id}/join':
+
+    get:
+
+      description: Logged in user joins the event
+
+      security:
+        - ApiKey: []
+        - Token: []
+
+      parameters:
+       - name: event_id
+         in: path
+         description: Event ID
+         required: true
+         type: number
+
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+         description: Successful Response
+        400:
+           description: Error (Response will contain details)
+        404:
+          description: User|Event not found
+        401:
+          description: Authorization error (wrong User's Token)
+        403:
+          description: Authorization error (wrong API key)
+
+  '/events/{event_id}/leave':
+
+    get:
+
+      description: Logged in user leaves the event
+
+      security:
+        - ApiKey: []
+        - Token: []
+
+      parameters:
+       - name: event_id
+         in: path
+         description: Event ID
+         required: true
+         type: number
+
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+         description: Successful Response
+        400:
+           description: Error (Response will contain details)
+        404:
+          description: User|Event not found
+        401:
+          description: Authorization error (wrong User's Token)
+        403:
+          description: Authorization error (wrong API key)
+
+  '/events/{event_id}/message':
+
+      post:
+
+        description: Add a message to event conversation
+
+        security:
+          - ApiKey: []
+          - Token: []
+
+        parameters:
+         - name: event_id
+           in: path
+           description: Event ID
+           required: true
+           type: number
+
+         - name: message
+           in: formData
+           description: Message
+           required: true
+           type: string
+           minLength: 1
+           maxLength: 255
+
+        # Expected responses for this operation:
+        responses:
+          # Response code
+          200:
+           description: Successful Response
+           schema:
+            title: Message Object
+            type: object
+            properties:
+              id:
+               type: number
+              created:
+                type: string
+                description: yyyy-mm-dd h:i:s
+              message:
+                type: string
+              users_id:
+                type: number
+              events_id:
+                type: number
+          400:
+             description: Error (Response will contain details)
+          404:
+            description: User|Event not found
+          401:
+            description: Authorization error (wrong User's Token)
+          403:
+            description: Authorization error (wrong API key)
