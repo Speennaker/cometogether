@@ -147,7 +147,20 @@ class Event extends MY_base_REST_Controller {
             $this->response($e->getMessage(), $e->getCode());
         }
     }
-
+    public function my_events_get()
+    {
+        try
+        {
+            $this->response([
+                'my_events' => $this->model->get_my($this->user_id),
+                'joined_events' => $this->model->get_my_joined($this->user_id)
+            ], 200);
+        }
+        catch(Exception $e)
+        {
+            $this->response($e->getMessage(), $e->getCode());
+        }
+    }
 
     public function search_post()
     {
@@ -241,13 +254,4 @@ class Event extends MY_base_REST_Controller {
         }
         $this->apn->disconnectPush();
     }
-
-
-
-
-
-
-
-
-
 }

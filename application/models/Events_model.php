@@ -237,6 +237,41 @@ class Events_model extends MY_base_model {
     }
 
 
+    public function get_my($user_id)
+    {
+        $this->db->select("e.*, e.users_id as creator_id, u.username as creator_username, u.birthday as creator_birthday, u.gender as creator_gender,
+                (SELECT COUNT(etu.id) FROM {$this->etu_model->table} etu WHERE etu.events_id = e.id) as joined_count");
+        $this->db->join($this->users_model->table.' u', 'e.users_id = u.id');
+        $this->db->where('e.users_id', $user_id);
+        $events =  $this->db->get($this->table.' e')->result_array();
+        foreach($events as &$event)
+        {
+            $event['creator_avatar'] = $this->users_model->get_photo($event['users_id'], $this->users_model->avatar);
+            unset($event['users_id']);
+            $event['place_info'] = json_decode($event['place_info']);
+        }
+        return $events;
+    }
+
+    public function get_my_joined($user_id)
+    {
+        $this->db->select("e.*, e.users_id as creator_id, u.username as creator_username, u.birthday as creator_birthday, u.gender as creator_gender,
+                (SELECT COUNT(etu.id) FROM {$this->etu_model->table} etu WHERE etu.events_id = e.id) as joined_count");
+        $this->db->join($this->users_model->table.' u', 'e.users_id = u.id');
+        $this->db->join($this->etu_model->table.' etu', 'etu.events_id = e.id', 'left');
+        $this->db->where('etu.users_id', $user_id);
+        $this->db->where('e.users_id !=', $user_id);
+        $events =  $this->db->get($this->table.' e')->result_array();
+        foreach($events as &$event)
+        {
+            $event['creator_avatar'] = $this->users_model->get_photo($event['users_id'], $this->users_model->avatar);
+            unset($event['users_id']);
+            $event['place_info'] = json_decode($event['place_info']);
+        }
+        return $events;
+    }
+
+
 
 
 

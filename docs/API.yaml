@@ -1251,6 +1251,185 @@ paths:
         403:
           description: Authorization error (wrong API key)
 
+  '/events/my':
+
+     get:
+
+       description: User related events
+       security:
+         - ApiKey: []
+         - Token: []
+
+       # Expected responses for this operation:
+       responses:
+          # Response code
+          200:
+            description: Successful response
+
+            # Use JSON Schema format
+            schema:
+              title: Result Array
+              type: object
+              properties:
+               my_events:
+                 type: array
+                 description: Events created by user
+                 items:
+                  type: object
+                  properties:
+                   id:
+                    type: number
+                   date:
+                     type: string
+                     description: yyyy-mm-dd
+                   created:
+                     type: string
+                     description: yyyy-mm-dd h:i:s
+                   updated:
+                     type: string
+                     description: yyyy-mm-dd h:i:s
+                   place_id:
+                     type: string
+                   place_type:
+                     type: string
+                   show_name:
+                     type: string
+                   comment:
+                     type: string
+                   gender:
+                     type: string
+                   people:
+                     type: number
+                   time:
+                     type: string
+                   users_id:
+                     type: number
+                   lat:
+                     type: number
+                   lng:
+                     type: number
+                   distance:
+                     type: number
+                     description: Distance from Google coordinates for user's city
+                   joined_count:
+                     type: number
+                     description: Joined Users Count
+                   creator_id:
+                    type: number
+                   creator_username:
+                    type: string
+                   creator_birthday:
+                    type: string
+                    description: yyyy-mm-dd
+                   creator_gender:
+                    type: string
+                   creator_avatar:
+                    type: string
+                    description: Full Avatar URL
+                   place_info:
+                     type: array
+                     items:
+                       type: object
+                       properties:
+                         name:
+                          type: string
+                         address:
+                          type: string
+                         icon:
+                          type: string
+                          description: Full Icon URL
+                         phone:
+                          type: string
+                         website:
+                          type: string
+                          description: Website URL
+                         rating:
+                          type: string
+
+               joined_events:
+                type: array
+                description: Events to which user is joined  (except created by him/her)
+                items:
+                 type: object
+                 properties:
+                  id:
+                   type: number
+                  date:
+                    type: string
+                    description: yyyy-mm-dd
+                  created:
+                    type: string
+                    description: yyyy-mm-dd h:i:s
+                  updated:
+                    type: string
+                    description: yyyy-mm-dd h:i:s
+                  place_id:
+                    type: string
+                  place_type:
+                    type: string
+                  show_name:
+                    type: string
+                  comment:
+                    type: string
+                  gender:
+                    type: string
+                  people:
+                    type: number
+                  time:
+                    type: string
+                  users_id:
+                    type: number
+                  lat:
+                    type: number
+                  lng:
+                    type: number
+                  distance:
+                    type: number
+                    description: Distance from Google coordinates for user's city
+                  joined_count:
+                    type: number
+                    description: Joined Users Count
+                  creator_id:
+                   type: number
+                  creator_username:
+                   type: string
+                  creator_birthday:
+                   type: string
+                   description: yyyy-mm-dd
+                  creator_gender:
+                   type: string
+                  creator_avatar:
+                   type: string
+                   description: Full Avatar URL
+                  place_info:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                         type: string
+                        address:
+                         type: string
+                        icon:
+                         type: string
+                         description: Full Icon URL
+                        phone:
+                         type: string
+                        website:
+                         type: string
+                         description: Website URL
+                        rating:
+                         type: string
+
+          400:
+            description: Error (Response will contain details)
+
+          401:
+            description: Authorization error (wrong User's Token)
+
+          403:
+            description: Authorization error (wrong API key)
+
   '/events/{event_id}':
 
     get:

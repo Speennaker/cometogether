@@ -64,6 +64,7 @@ $route['api/events/(:num)']         = 'rest/event/details/$1';
 $route['api/events/(:num)/message'] = 'rest/event/message/$1';
 $route['api/events/nearest']        = 'rest/event/nearest_by_coords';
 $route['api/events/search']         = 'rest/event/search';
+$route['api/events/my']             = 'rest/event/my_events';
 $route['api/profile/settings']      = 'rest/user/settings';
 //$route['api/profile/deactivate']    = 'rest/user/status/0';
 
