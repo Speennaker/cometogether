@@ -5,6 +5,8 @@ class Users_model extends MY_base_model {
     public $min_pass_length = 4;
     public $entity_name = 'user';
     public $avatar = 'avatar';
+    /** @var  User_settings_model */
+    public $user_settings_model;
     protected $fields = [
         'email' => [
             'required' => true,
@@ -42,6 +44,8 @@ class Users_model extends MY_base_model {
     public function __construct()
     {
         parent::__construct('users');
+        $this->_ci->load->model('user_settings_model', 'user_settings_model');
+        $this->user_settings_model = $this->_ci->user_settings_model;
     }
 
 
@@ -70,9 +74,11 @@ class Users_model extends MY_base_model {
         }
         $data['password'] = sha1($data['password']);
         $data['active'] = true;
-        $data['token'] = $this->generate_token();
+        $data['hash'] = $this->generate_token();
         $data['id'] = $this->add($data);
         unset($data['password']);
+        $this->user_settings_model->add(['users_id' => $data['id']]);
+        $this->send_email($data['id'], lang('welcome_email_subject'), lang('welcome_email'));
         return ['errors' => '', 'profile' => $data];
 
 
@@ -162,15 +168,15 @@ class Users_model extends MY_base_model {
             return false;
         }
 
-        $this->load->library('email');
+        $this->_ci->load->library('email');
+//        $this->email = $this->_ci->email;
+        $this->_ci->email->from(MAIL_FROM_ADDRESS, MAIL_FROM_NAME);
+        $this->_ci->email->to($profile['email']);
 
-        $this->email->from(MAIL_FROM_ADDRESS, MAIL_FROM_NAME);
-        $this->email->to($profile['email']);
+        $this->_ci->email->subject($subject);
+        $this->_ci->email->message($text);
 
-        $this->email->subject($subject);
-        $this->email->message($text);
-
-        return $this->email->send();
+        return $this->_ci->email->send();
     }
 
 

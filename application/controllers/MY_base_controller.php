@@ -7,6 +7,12 @@ abstract class MY_base_controller extends CI_Controller {
     public $load;
     protected $menu_item;
     public $bulk_actions = [];
+    public $language = 'russian';
+    public $language_header = 'language';
+    public $languages = [
+        'ru' => 'russian',
+        'en' => 'english',
+    ];
 
     function __construct($menu_item)
     {

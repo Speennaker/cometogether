@@ -2,14 +2,15 @@
 
 application/config/database.php
 application/config/constants.php
+application/config/pushcert.pem
 application/cache/*
 !application/cache/index.html
 !application/cache/.htaccess
-
+docs/*
 application/logs/*
 !application/logs/index.html
 !application/logs/.htaccess
-
+assets/images/user/*
 user_guide_src/build/*
 user_guide_src/cilexer/build/*
 user_guide_src/cilexer/dist/*

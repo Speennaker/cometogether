@@ -5,9 +5,12 @@ class Event extends MY_base_REST_Controller {
 
     /** @var  Events_model */
     public $model;
-
     /** @var  Events_messages_model */
     public $em_model;
+    /** @var  Device_tokens_model */
+    public $dt_model;
+    /** @var  CI_Email */
+    public $email;
 
 
     function __construct()
@@ -15,6 +18,7 @@ class Event extends MY_base_REST_Controller {
         parent::__construct();
         $this->load->model('events_model', 'model');
         $this->load->model('events_messages_model', 'em_model');
+        $this->load->model('device_tokens_model', 'dt_model');
         $this->auth();
     }
 
@@ -29,7 +33,7 @@ class Event extends MY_base_REST_Controller {
             {
                 $this->response($create_result, 400);
             }
-            $create_result['data'] = $this->model->get_by_id($create_result['data']['id']);
+            $create_result['data'] = $this->model->get_event($create_result['data']['id']);
             $this->response($create_result, 200);
         }
         catch(Exception $e)
@@ -38,23 +42,19 @@ class Event extends MY_base_REST_Controller {
         }
     }
 
-
     public function leave_get($event_id)
     {
 
         try
         {
-            $profile = $this->users_model->get_profile($this->user_id);
-            if(!$profile)
-            {
-                $this->response(sprintf(lang('not_found'), ucfirst(lang('user'))), 404);
-            }
             $event = $this->model->get_by_id($event_id);
             if(!$event)
             {
                 $this->response(sprintf(lang('not_found'), ucfirst(lang('event'))), 404);
             }
-            $this->response($this->model->leave_event($event_id, $this->user_id), 200);
+            $this->model->leave_event($event_id, $this->user_id);
+            $this->send_notification('user_left', $event_id);
+            $this->response(true, 200);
         }
         catch(Exception $e)
         {
@@ -67,17 +67,21 @@ class Event extends MY_base_REST_Controller {
 
         try
         {
-            $profile = $this->users_model->get_profile($this->user_id);
-            if(!$profile)
-            {
-                $this->response(sprintf(lang('not_found'), ucfirst(lang('user'))), 404);
-            }
             $event = $this->model->get_by_id($event_id);
             if(!$event)
             {
                 $this->response(sprintf(lang('not_found'), ucfirst(lang('event'))), 404);
             }
-            $this->response($this->model->join_event($event_id, $this->user_id), 200);
+            if($this->model->join_event($event_id, $this->user_id))
+            {
+                $this->send_notification('user_join', $event_id);
+                $this->response(true, 200);
+            }
+            else
+            {
+                $this->response('Error!', 500);
+            }
+
         }
         catch(Exception $e)
         {
@@ -87,15 +91,9 @@ class Event extends MY_base_REST_Controller {
 
     public function nearest_by_user_get()
     {
-
         try
         {
-            $profile = $this->users_model->get_extended_profile($this->user_id);
-            if(!$profile)
-            {
-                $this->response(sprintf(lang('not_found'), ucfirst(lang('user'))), 404);
-            }
-            $coords = $this->model->gm->geoPlaceCoords($profile['city_id']);
+            $coords = $this->model->gm->geoPlaceCoords($this->user['city_id']);
             $this->response($this->model->get_nearest($coords->lat, $coords->lng), 200);
         }
         catch(Exception $e)
@@ -106,7 +104,6 @@ class Event extends MY_base_REST_Controller {
 
     public function nearest_by_coords_post()
     {
-
         try
         {
             if(!$this->post('lat') || !$this->post('lng') || !$this->post('radius') ) $this->response('Missing Parameters', 400);
@@ -142,6 +139,7 @@ class Event extends MY_base_REST_Controller {
                 'created'  => date('Y-m-d H:i:s')
             ];
             $data['id'] = $this->em_model->add($data);
+            $this->send_notification('new_message', $event_id);
             $this->response($data, 200);
         }
         catch(Exception $e)
@@ -176,8 +174,7 @@ class Event extends MY_base_REST_Controller {
             }
             else
             {
-                $profile = $this->users_model->get_extended_profile($this->user_id);
-                $coords = $this->model->gm->geoPlaceCoords($profile['city_id']);
+                $coords = $this->model->gm->geoPlaceCoords($this->user['city_id']);
                 $lat = $coords->lat;
                 $lng = $coords->lng;
                 $radius = (array_key_exists('radius', $params) && $params['radius']) ? $params['radius'] : 50000;
@@ -188,6 +185,61 @@ class Event extends MY_base_REST_Controller {
         {
             $this->response($e->getMessage(), $e->getCode());
         }
+    }
+
+    protected function send_notification($type, $event_id)
+    {
+        $recipients = $this->dt_model->get_tokens_for_send($type, $event_id, $this->user_id);
+        $emails = [];
+        $tokens = [];
+        foreach($recipients as $user)
+        {
+            if($user['push_allowed']) $tokens[] = $user['token'];
+            if($user['email_allowed']) $emails[] = $user['email'];
+        }
+        if($tokens)
+        {
+           $this->send_push($type, $tokens, $event_id);
+        }
+        if($emails)
+        {
+            $this->send_email(implode(', ', $emails), lang("{$type}_subject"), sprintf(lang("{$type}_email"), $this->user['username'], $event_id));
+        }
+
+
+        return true;
+    }
+
+    protected function send_email($to, $subject, $text)
+    {
+        $this->load->library('email');
+        $this->email->from(MAIL_FROM_ADDRESS, MAIL_FROM_NAME);
+        $this->email->bcc($to);
+        $this->email->bcc_batch_mode = true;
+        $this->email->subject($subject);
+        $this->email->message($text);
+        $this->email->batch_bcc_send();
+        return $this->email->send();
+    }
+
+    protected function send_push($type, $tokens, $event_id)
+    {
+        $this->load->library('apn');
+        $this->apn->payloadMethod = 'enhance'; // включите этот метод для отладки
+        $this->apn->connectToPush();
+
+        // добавление собственных переменных в notification
+        $this->apn->setData(['event_id' => $event_id]);
+
+        foreach($tokens as $token)
+        {
+            $send_result = $this->apn->sendMessage($token, sprintf(lang("{$type}_push"), $this->user['username'], $event_id), /*badge*/ 1, /*sound*/ 'default'  );
+            if($send_result)
+                log_message('error','Отправлено успешно');
+            else
+                log_message('error',$this->apn->error);
+        }
+        $this->apn->disconnectPush();
     }
 
 

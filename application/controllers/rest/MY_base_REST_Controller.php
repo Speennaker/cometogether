@@ -6,6 +6,9 @@ abstract class MY_base_REST_Controller extends REST_Controller {
     /** @var  Users_model */
     public $users_model;
     public $user_id;
+    public $user;
+    /** @var  APN */
+    public $apn;
     public $language = 'russian';
     public $language_header = 'language';
     public $languages = [
@@ -42,7 +45,31 @@ abstract class MY_base_REST_Controller extends REST_Controller {
                 $this->response('Authorization Error', 401);
             }
             $this->user_id = $user['id'];
+            $this->user = $user;
         }
+    }
+
+// для получения идентификаторов устройств, на которых приложение больше не установлено
+    public function apn_feedback()
+    {
+        $this->load->library('apn');
+
+        $unactive = $this->apn->getFeedbackTokens();
+
+        if (!count($unactive))
+        {
+            log_message('info','Feedback: No devices found. Stopping.');
+            return false;
+        }
+
+        foreach($unactive as $u)
+        {
+            $devices_tokens[] = $u['devtoken'];
+        }
+
+        /*
+        print_r($unactive) -> Array ( [0] => Array ( [timestamp] => 1340270617 [length] => 32 [devtoken] => 002bdf9985984f0b774e78f256eb6e6c6e5c576d3a0c8f1fd8ef9eb2c4499cb4 ) )
+        */
     }
 
 

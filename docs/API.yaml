@@ -343,13 +343,13 @@ paths:
         - name: city_id
           in: formData
           description: Google place ID
-          required: true
+          required: false
           type: string
 
         - name: gender
           in: formData
           description: Gender
-          required: true
+          required: false
           type: string
           enum: ['male', 'female']
         
@@ -545,6 +545,113 @@ paths:
              404:
                description: User was not found
 
+  '/profile/settings':
+
+        get:
+            description: Get Notification Settings
+            security:
+              - ApiKey: []
+              - Token: []
+
+            responses:
+               # Response code
+               200:
+                description: Successful response
+                schema:
+                  type: object
+                  properties:
+                   new_message_push:
+                    type: boolean
+                   user_left_push:
+                    type: boolean
+                   user_join_push:
+                    type: boolean
+                   new_message_email:
+                    type: boolean
+                   user_left_email:
+                    type: boolean
+                   user_join_email:
+                    type: boolean
+
+               400:
+                 description: Error (Response will contain details)
+               401:
+                 description: Authorization error (wrong User's Token)
+               403:
+                 description: Authorization error (wrong API key)
+
+        put:
+            description: Set Notification Settings
+            security:
+              - ApiKey: []
+              - Token: []
+
+            parameters:
+
+              - name: new_message_push
+                in: formData
+                description: Push notification about new messages in events user involved
+                required: false
+                type: boolean
+
+              - name: user_left_push
+                in: formData
+                description: Push notification about someone has left events user involved
+                required: false
+                type: boolean
+
+              - name: user_join_push
+                in: formData
+                description: Push notification about someone has joined events user involved
+                required: false
+                type: boolean
+
+              - name: new_message_email
+                in: formData
+                description: Email notification about new messages in events user involved
+                required: false
+                type: boolean
+
+              - name: user_left_email
+                in: formData
+                description: Email notification about someone has left events user involved
+                required: false
+                type: boolean
+
+              - name: user_join_email
+                in: formData
+                description: Email notification about someone has joined events user involved
+                required: false
+                type: boolean
+
+            responses:
+               # Response code
+               200:
+                description: Successful response
+                schema:
+                  type: object
+                  properties:
+                   new_message_push:
+                    type: boolean
+                   user_left_push:
+                    type: boolean
+                   user_join_push:
+                    type: boolean
+                   new_message_email:
+                    type: boolean
+                   user_left_email:
+                    type: boolean
+                   user_join_email:
+                    type: boolean
+
+               400:
+                 description: Error (Response will contain details)
+               401:
+                 description: Authorization error (wrong User's Token)
+               403:
+                 description: Authorization error (wrong API key)
+
+
 
   # Events block
 
@@ -661,6 +768,37 @@ paths:
                     type: number
                   lng:
                     type: number
+                  creator_id:
+                   type: number
+                  creator_username:
+                   type: string
+                  creator_birthday:
+                   type: string
+                   description: yyyy-mm-dd
+                  creator_gender:
+                   type: string
+                  creator_avatar:
+                   type: string
+                   description: Full Avatar URL
+                  place_info:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                         type: string
+                        address:
+                         type: string
+                        icon:
+                         type: string
+                         description: Full Icon URL
+                        phone:
+                         type: string
+                        website:
+                         type: string
+                         description: Website URL
+                        rating:
+                         type: string
               errors:
                 title: Errors array
                 type: array

@@ -10,6 +10,8 @@ class User extends MY_base_REST_Controller {
     public $model;
     /** @var  Device_tokens_model */
     public $device_tokens_model;
+    /** @var  User_settings_model */
+    public $user_settings_model;
 
 
     function __construct()
@@ -17,6 +19,7 @@ class User extends MY_base_REST_Controller {
         parent::__construct();
         $this->model = $this->users_model;
         $this->load->model('device_tokens_model');
+        $this->load->model('user_settings_model', 'user_settings_model');
     }
 
 
@@ -45,16 +48,16 @@ class User extends MY_base_REST_Controller {
         $this->auth(true);
         try
         {
+            if(!$this->post()) throw new Exception('Empty Request', 400);
             $data = $this->post();
             unset($data['device_token']);
             $device_token = $this->post('device_token');
-            $reg_result = $this->model->register($this->post());
+            $reg_result = $this->model->register($data);
             if($reg_result['errors'])
             {
                 $this->response($reg_result, 400);
             }
-            $reg_result['profile'] = $this->model->get_profile($reg_result['profile']['id']);
-            $reg_result['profile']['avatar'] = false;
+            $reg_result['profile'] = $this->model->get_extended_profile($reg_result['profile']['id']);
             if($device_token) $this->device_tokens_model->add_token($reg_result['profile']['id'], $device_token);
             $this->response($reg_result, 200);
         }
@@ -113,11 +116,6 @@ class User extends MY_base_REST_Controller {
         $this->auth();
         try
         {
-            $profile = $this->model->get_profile($this->user_id);
-            if(!$profile)
-            {
-                $this->response(sprintf(lang('not_found'), ucfirst(lang('user'))), 404);
-            }
             $this->response($this->model->photo_upload($this->user_id, $this->model->avatar), 200);
         }
         catch(Exception $e)
@@ -131,12 +129,7 @@ class User extends MY_base_REST_Controller {
         $this->auth();
         try
         {
-            $profile = $this->model->get_profile($this->user_id);
-            if(!$profile)
-            {
-                $this->response(sprintf(lang('not_found'), ucfirst(lang('user'))), 404);
-            }
-            if($this->model->delete_photo($this->user_id,$this->model->avatar))
+            if($this->model->delete_photo($this->user_id, $this->model->avatar))
                 $this->response(true, 200);
             else
                 $this->response(sprintf(lang('not_found'), ucfirst(lang('avatar'))), 404);
@@ -152,16 +145,8 @@ class User extends MY_base_REST_Controller {
         $this->auth();
         try
         {
-            $profile = $this->model->get_profile($this->user_id);
-            if(!$profile)
-            {
-                $this->response(sprintf(lang('not_found'), ucfirst(lang('user'))), 404);
-            }
-            $avatar = $profile['avatar'];
-            if($avatar)
-                $this->response($avatar, 200);
-            else
-                $this->response(sprintf(lang('not_found'), ucfirst(lang('avatar'))), 404);
+            $avatar = $this->model->get_photo($this->user_id, $this->model->avatar);
+            $this->response($avatar, 200);
         }
         catch(Exception $e)
         {
@@ -174,11 +159,6 @@ class User extends MY_base_REST_Controller {
         $this->auth();
         try
         {
-            $profile = $this->model->get_profile($this->user_id);
-            if(!$profile)
-            {
-                $this->response(sprintf(lang('not_found'), ucfirst(lang('user'))), 404);
-            }
             $this->model->update($this->user_id, ['active' => $status]);
             $this->response(true, 200);
         }
@@ -198,13 +178,38 @@ class User extends MY_base_REST_Controller {
             {
                 throw new Exception('Missing Parameters', 400);
             }
-            $profile = $this->model->get_profile($this->user_id);
-            if(!$profile)
-            {
-                $this->response(sprintf(lang('not_found'), ucfirst(lang('user'))), 404);
-            }
 
             $this->response($this->device_tokens_model->add_token($this->user_id, $this->post('device_token')), 200);
+        }
+        catch(Exception $e)
+        {
+            $this->response($e->getMessage(), $e->getCode());
+        }
+
+    }
+
+    public function settings_put()
+    {
+        $this->auth();
+        try
+        {
+            if(!$this->put()) throw new Exception('Empty Request', 400);
+            $this->user_settings_model->update_settings($this->user_id, $this->put());
+            $this->response($this->user_settings_model->get_user_settings($this->user_id), 200);
+        }
+        catch(Exception $e)
+        {
+            $this->response($e->getMessage(), $e->getCode());
+        }
+
+    }
+
+    public function settings_get()
+    {
+        $this->auth();
+        try
+        {
+            $this->response($this->user_settings_model->get_user_settings($this->user_id), 200);
         }
         catch(Exception $e)
         {

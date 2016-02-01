@@ -5,41 +5,6 @@
 */
 
 $lang = [
-    'project_name' => 'Posing Guide',
-    'footer' => 'Copyright '.date('Y'),
-    'main_title' => 'Posing Guide',
-    'dashboard_title' => 'Dashboard',
-    'dashboard_page_title' => 'Dashboard',
-    'rules_title' => 'Rules',
-    'rules_page_title' => 'Rules',
-    'categories_title' => 'Categories',
-    'categories_page_title' => 'Categories',
-    'poses_categories_list' => 'Categories List',
-    'category_title' => 'Title',
-    'category_active' => 'Active',
-    'category_published' => 'Published',
-    'category_subcategories' => 'Subcategories',
-    'category_poses' => 'Poses',
-    'category_free' => 'Chargeable',
-    'category_modified' => 'Last Modified',
-
-    'add_subcategory' => 'Add Subcategory',
-    'add_poses' => 'Add Poses',
-    'edit' => 'Edit',
-    'delete' => 'Delete',
-    'cancel' => 'Cancel',
-    'choose_action' => 'Choose Action',
-
-    'make_active' => 'Make Active',
-    'make_inactive' => 'Make Inactive',
-    'make_published' => 'Make Published',
-    'make_unpublished' => 'Make Unpublished',
-    'make_chargeable' => 'Make Chargeable',
-    'make_free' => 'Make Free',
-
-    'warning' => 'Warning',
-    'delete_confirmation' => 'Are you really want to delete selected items?',
-
 
     'empty_field' => '%s is required',
     'invalid_field' => '%s is invalid',
@@ -64,7 +29,22 @@ $lang = [
     'time' => 'time',
     'date' => 'date',
     'event' => 'event',
-    'already_joined' => 'User has already joined this event!',
+    'already_joined' => 'User has already joined this event',
+    'already_left' => 'User does not participate this event',
     'users_id' => 'user ID',
     'city_id' => 'city ID',
+
+    /** Templates */
+
+    'welcome_email_subject' => 'Registration',
+    'welcome_email' => 'Welcome!',
+    'new_message_push' => 'User %s has left new message in Event %s conversation',
+    'new_message_email' => 'User %s left new message in Event %s conversation',
+    'new_message_subject' => 'New Message',
+    'user_join_push' => 'User %s has joined Event %s',
+    'user_join_email' => 'User %s has joined Event %s',
+    'user_join_subject' => 'User Joined',
+    'user_left_push' => 'User %s has left Event %s',
+    'user_left_email' => 'User %s has left Event %s',
+    'user_left_subject' => 'User Left'
 ];

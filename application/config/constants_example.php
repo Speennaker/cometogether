@@ -85,10 +85,10 @@ defined('EXIT__AUTO_MIN')      OR define('EXIT__AUTO_MIN', 9); // lowest automat
 defined('EXIT__AUTO_MAX')      OR define('EXIT__AUTO_MAX', 125); // highest automatically-assigned error code
 
 
-define('BASE_URL', 'http://kassir.loc');
-define('GOOGLE_SERVER_KEY', 'AIzaSyDa6UO_FaYdT_RXMMG7OFIEG2liVB33iUU');
-define('API_KEY', '8ea7135ef526805353a45bb66889ce02853b383a');
+define('BASE_URL', '');
+define('GOOGLE_SERVER_KEY', '');
+define('API_KEY', '');
 
 
-define('MAIL_FROM_ADDRESS', 'n.denisoff@mail.ru');
-define('MAIL_FROM_NAME', 'Nick');
+define('MAIL_FROM_ADDRESS', '');
+define('MAIL_FROM_NAME', '');

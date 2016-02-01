@@ -92,14 +92,26 @@ class Events_model extends MY_base_model {
         {
             return ['errors' => $errors, 'data' => $data];
         }
-        $coords = $this->gm->geoPlaceCoords($data['place_id']);
-        if(!$coords)
+        $info = $this->gm->geoPlaceInfo($data['place_id']);
+        if(!$info)
         {
             $errors['place_id'] = sprintf(lang('invalid_field'),ucfirst(lang('place_id')));
             return ['errors' => $errors, 'data' => $data];
         }
-        $data['lat'] = $coords->lat;
-        $data['lng'] = $coords->lng;
+        else
+        {
+            $data['place_info'] = json_encode([
+                'name' => $info->result->name,
+                'address' => $info->result->formatted_address,
+                'icon' => $info->result->icon,
+                'phone' => $info->result->international_phone_number,
+                'website' => $info->result->website,
+                'rating' => $info->result->rating
+
+            ]);
+            $data['lat'] = $info->result->geometry->location->lat;
+            $data['lng'] = $info->result->geometry->location->lng;
+        }
         $data['id'] = $this->add($data);
         $this->join_event($data['id'], $data['users_id']);
         return ['errors' => [], 'data' => $data];
@@ -117,6 +129,10 @@ class Events_model extends MY_base_model {
 
     public function leave_event($event_id, $user_id)
     {
+        if(!$this->db->get_where($this->etu_model->table, ['events_id' => $event_id, 'users_id' => $user_id])->row_array())
+        {
+            throw new Exception(lang('already_left'), 400);
+        }
         return $this->db->delete($this->etu_model->table, ['events_id' => $event_id, 'users_id' => $user_id]);
     }
 
@@ -135,24 +151,7 @@ class Events_model extends MY_base_model {
         {
             $event['creator_avatar'] = $this->users_model->get_photo($event['users_id'], $this->users_model->avatar);
             unset($event['users_id']);
-            $info = $this->gm->geoPlaceInfo($event['place_id']);
-            if(!$info)
-            {
-                $event['place_info']  = [];
-            }
-            else
-            {
-                $event['place_info'] = [
-                    'name' => $info->result->name,
-                    'address' => $info->result->formatted_address,
-                    'icon' => $info->result->icon,
-                    'phone' => $info->result->international_phone_number,
-                    'website' => $info->result->website,
-                    'rating' => $info->result->rating
-
-                ];
-            }
-
+            $event['place_info'] = json_decode($event['place_info']);
         }
         return $events;
     }
@@ -166,24 +165,7 @@ class Events_model extends MY_base_model {
         if(!$event) return [];
         $event['creator_avatar'] = $this->users_model->get_photo($event['users_id'], $this->users_model->avatar);
         unset($event['users_id']);
-        if($place_info)
-        {
-            $info = $this->gm->geoPlaceInfo($event['place_id']);
-            if(!$info)
-            {
-                $event['place_info']  = [];
-                return $event;
-            }
-            $event['place_info'] = [
-                'name' => $info->result->name,
-                'address' => $info->result->formatted_address,
-                'icon' => $info->result->icon,
-                'phone' => $info->result->international_phone_number,
-                'website' => $info->result->website,
-                'rating' => $info->result->rating
-
-            ];
-        }
+        $event['place_info'] = json_decode($event['place_info']);
         return $event;
 
 
@@ -241,23 +223,7 @@ class Events_model extends MY_base_model {
         {
             $event['creator_avatar'] = $this->users_model->get_photo($event['users_id'], $this->users_model->avatar);
             unset($event['users_id']);
-            $info = $this->gm->geoPlaceInfo($event['place_id']);
-            if(!$info)
-            {
-                $event['place_info']  = [];
-            }
-            else
-            {
-                $event['place_info'] = [
-                    'name' => $info->result->name,
-                    'address' => $info->result->formatted_address,
-                    'icon' => $info->result->icon,
-                    'phone' => $info->result->international_phone_number,
-                    'website' => $info->result->website,
-                    'rating' => $info->result->rating
-
-                ];
-            }
+            $event['place_info'] = json_decode($event['place_info']);
 
         }
         $result = [

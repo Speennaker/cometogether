@@ -16,8 +16,8 @@ abstract class MY_base_model extends CI_Model
     protected $images_url;
     protected $fields = [];
 
-    /** @var  CI_Email */
-    public $email;
+//    /** @var  CI_Email */
+//    public $email;
 
     public $table_fields;
 
